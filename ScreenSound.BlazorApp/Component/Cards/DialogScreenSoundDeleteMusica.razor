@@ -1,0 +1,41 @@
+﻿@inject NavigationManager navigationManager
+@inject MusicaAPI musicaAPI
+<MudDialog>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="RemoverMusica">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public string? ContentText { get; set; }
+
+    [Parameter] public string? ButtonText { get; set; }
+
+    [Parameter] public Color Color { get; set; }
+
+    [Parameter] public Musica? Musica { get; set; }
+
+    public async Task RemoverMusica()
+    {
+        try
+        {
+            await musicaAPI.DeleteMusicaAsync(Musica!.Id);
+            Thread.Sleep(3000);
+            navigationManager.NavigateTo("/");
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

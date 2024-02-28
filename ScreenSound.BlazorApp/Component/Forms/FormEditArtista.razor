@@ -1,0 +1,60 @@
+﻿@inject NavigationManager navigationManager
+@inject ILogger<FormArtista> Logger
+@inject ArtistaAPI artistasAPI
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm>
+                <MudTextField T="string" Label="Nome" @bind-Value="Artista!.Nome" Required="true" RequiredError="Campo nome deve ser preenchido!" />
+                <MudTextField T="string" Label="Biografia" @bind-Value="Artista.Bio" Required="true" RequiredError="Campo Bio deve ser preenchido!" />
+
+            </MudForm>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" @onclick="VoltarParaListagem">Voltar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="AtualizarArtista">Salvar</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter]
+    public string? Nome { get; set; }
+    private Artista? Artista { get; set; }
+    private string submitMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Artista = await artistasAPI.GetArtistaPorNomeAsync(Nome!);      
+    }
+
+    private void VoltarParaListagem()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+    private async Task AtualizarArtista()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(Artista!.Nome))
+            {
+                return;
+            }
+            await artistasAPI.UpdateArtistaAsync(Artista!);
+            Logger.LogInformation("Dados atualizados com sucesso");
+            Thread.Sleep(2000);
+            navigationManager.NavigateTo("/");
+        }
+        catch (Exception)
+        {
+            Logger.LogInformation("Erro ao atualizar artista!");
+        }
+
+    }
+
+
+
+}

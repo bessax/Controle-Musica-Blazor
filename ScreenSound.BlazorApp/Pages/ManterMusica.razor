@@ -1,0 +1,78 @@
+﻿@page "/musicas/manter"
+@inject MusicaAPI musicaAPI
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<br />
+<MudButton Variant="Variant.Filled" @onclick="@AdicionarMusica"
+           Color="Color.Primary">
+    Adicionar
+</MudButton>
+<br />
+<MudGrid>
+    <MudItem xs="8">
+        <MudTable Items="@Musicas">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"><b>Manutenção de Músicas</b></MudText>
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh><b>Nome Música</b></MudTh>              
+                <MudTh><b>Excluir</b></MudTh>
+                <MudTh><b>Editar</b></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="nome">@context.Nome</MudTd>
+               
+                <MudTd DataLabel="del">                                          
+                        <MudButton @onclick="() => ConfirmarExclusao(context!)">                              
+                            <MudIcon Icon=@Icons.Material.Filled.Delete Color="Color.Primary" />
+                        </MudButton>                 
+
+                </MudTd>
+                <MudTd DataLabel="upd">
+                    <MudButton @onclick="() => AtualizaMusica(context!)">
+                        <MudIcon Icon=@Icons.Material.Filled.Update Color="Color.Primary" />
+                    </MudButton>
+                </MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{5, 10}" />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public List<Musica>? Musicas { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Musicas = await musicaAPI.GetMusicasAsync();
+    }
+
+    private void AdicionarMusica()
+    {
+        Navigation.NavigateTo("musicas/novo");
+    }
+
+
+    private void ConfirmarExclusao(Musica musica)
+    {
+        var parameters = new DialogParameters<DialogScreenSoundDeleteMusica>();
+        parameters.Add(x => x.ContentText, $"Deseja realmente excluir {musica.Nome}? O artista será excluído da base de dados.");
+        parameters.Add(x => x.ButtonText, "Excluir");
+        parameters.Add(x => x.Color, Color.Error); 
+        parameters.Add(x => x.Musica, musica);
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        DialogService.Show<DialogScreenSoundDeleteMusica>("Excluir Música", parameters, options);
+
+    }
+
+    private void AtualizaMusica(Musica musica)
+    {
+        Navigation.NavigateTo("musicas/edit/"+ musica.Nome);
+    }
+
+}

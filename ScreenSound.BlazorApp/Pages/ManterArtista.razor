@@ -1,0 +1,80 @@
+﻿@page "/artistas/manter"
+@using System.Text.Json;
+@inject ArtistaAPI artistasAPI
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<br />
+<MudButton Variant="Variant.Filled" @onclick="@AdicionarArtista"
+           Color="Color.Primary">
+    Adicionar
+</MudButton>
+<br />
+<MudGrid>
+    <MudItem xs="8">
+        <MudTable Items="@Artistas">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6"><b>Manutenção de Artistas</b></MudText>
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh><b>Nome Artista/Banda</b></MudTh>
+                <MudTh><b>Biografia</b></MudTh>
+                <MudTh><b>Excluir</b></MudTh>
+                <MudTh><b>Editar</b></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="nome">@context.Nome</MudTd>
+                <MudTd DataLabel="bio">@context.Bio</MudTd>
+                <MudTd DataLabel="del">                                          
+                        <MudButton @onclick="() => ConfirmarExclusao(context!)">                              
+                            <MudIcon Icon=@Icons.Material.Filled.Delete Color="Color.Primary" />
+                        </MudButton>                 
+
+                </MudTd>
+                <MudTd DataLabel="upd">
+                    <MudButton @onclick="() => AtualizaArtista(context!)">
+                        <MudIcon Icon=@Icons.Material.Filled.Update Color="Color.Primary" />
+                    </MudButton>
+                </MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{5, 10}" />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+</MudGrid>
+
+@code {
+    public List<Artista>? Artistas { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Artistas = await artistasAPI.GetArtistasAsync();
+    }
+
+    private void AdicionarArtista()
+    {
+        Navigation.NavigateTo("artistas/novo");
+    }
+
+
+    private void ConfirmarExclusao(Artista artista)
+    {
+        var parameters = new DialogParameters<DialogScreenSoundDeleteArtista>();
+        parameters.Add(x => x.ContentText, $"Deseja realmente excluir {artista.Nome}? O artista será excluído da base de dados.");
+        parameters.Add(x => x.ButtonText, "Excluir");
+        parameters.Add(x => x.Color, Color.Error);
+        parameters.Add(x => x.artista, artista);
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        DialogService.Show<DialogScreenSoundDeleteArtista>("Excluir Artista", parameters, options);
+
+    }
+
+    private void AtualizaArtista(Artista artista)
+    {
+        Navigation.NavigateTo("artistas/edit/"+ artista.Nome);
+    }
+
+}

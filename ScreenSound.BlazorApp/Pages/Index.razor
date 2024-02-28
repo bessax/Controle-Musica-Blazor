@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@inject ArtistaAPI artistasAPI
+@inject MusicaAPI musicasAPI
+
+<PageTitle>Home</PageTitle>
+
+<h3>Últimos artistas cadastrados</h3>
+@if (Artistas is not null)
+{
+    <MudGrid>
+        @foreach (var item in Artistas.OrderByDescending(a => a.Id).Take(5)!)
+        {
+            <CardArtista Artista=item />
+        }
+    </MudGrid>
+}
+<br />
+<h3>Últimas músicas cadastradas</h3>
+@if (Musicas is not null)
+{
+    <MudGrid>
+        @foreach (var item in Musicas.OrderByDescending(a => a.Id).Take(5)!)
+        {
+            <CardMusica Musica=item />
+        }
+    </MudGrid>
+}
+
+@code {
+    public List<Artista>? Artistas { get; set; }
+    public List<Musica>? Musicas { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        Artistas = await artistasAPI.GetArtistasAsync();
+        Musicas = await musicasAPI.GetMusicasAsync();
+    }
+}
+

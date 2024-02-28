@@ -1,0 +1,84 @@
+﻿@inject NavigationManager navigationManager
+@inject ILogger<FormArtista> Logger
+@inject ArtistaAPI artistasAPI
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm>
+                <MudTextField T="string" Label="Nome" @bind-Value="Artista.Nome" Required="true" RequiredError="Campo nome deve ser preenchido!" />
+                <MudTextField T="string" Label="Biografia" @bind-Value="Artista.Bio" Required="true" RequiredError="Campo Bio deve ser preenchido!" />
+
+            </MudForm>
+            <MudCardContent>
+                <MudImage src="@fileImage" />
+                <MudFileUpload T="IBrowserFile" Accept=".png, .jpg" FilesChanged="UploadFile" MaximumFileCount="100">
+                    <ButtonTemplate>
+                        <MudButton HtmlTag="label"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.PhotoCamera"
+                                   for="@context">
+                            Foto de Perfil
+                        </MudButton>
+                    </ButtonTemplate>
+                </MudFileUpload>
+            </MudCardContent>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" @onclick="VoltarParaListagem">Voltar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="CadastrarArtista">Gravar</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter]
+    public Artista? Artista { get; set; }
+    private string submitMessage = string.Empty;
+    private string fileImage = string.Empty;
+    private void VoltarParaListagem()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+    private async Task CadastrarArtista()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(Artista!.Nome))
+            {
+                return;
+            }
+            await artistasAPI.AddArtistaAsync(Artista!);
+            Logger.LogInformation("Dados cadastrados com sucesso");
+            Thread.Sleep(2000);
+            navigationManager.NavigateTo("/");
+        }
+        catch (Exception)
+        {
+            Logger.LogInformation("Erro ao cadastrar artista!");
+        }
+
+    }
+
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+
+    private async Task UploadFile(IBrowserFile file)
+    {
+        long maxFileSize = 1024 * 1024 * 15;
+        var format = "image/jpeg";
+        var resizedImage = await file.RequestImageFileAsync(format, 200, 200);
+
+        using var fileStream = resizedImage.OpenReadStream();
+        using var memoryStream = new MemoryStream();
+        await fileStream.CopyToAsync(memoryStream);
+
+        fileImage = $"data:{format};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
+
+        Artista!.FotoPerfil = Convert.ToBase64String(memoryStream.ToArray());
+    }
+
+
+}

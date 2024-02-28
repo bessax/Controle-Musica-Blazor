@@ -1,0 +1,10 @@
+﻿@page "/artistas/edit/{nome}"
+
+<h1>Edição de Artista</h1>
+<br />
+<FormEditArtista Nome="@Nome"/>
+@code {
+    [Parameter]
+    public string? Nome { get; set; }    
+}
+

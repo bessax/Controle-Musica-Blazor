@@ -1,0 +1,118 @@
+﻿
+@inject NavigationManager navigationManager
+@inject ILogger<FormMusica> Logger
+@inject MusicaAPI musicaAPI
+@inject GeneroAPI generoAPI
+@inject ArtistaAPI artistaAPI
+@inject IDialogService DialogService
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm>
+                <MudTextField T="string" Label="Nome do Artista" @bind-Value="@NomeArtista" Required="true" RequiredError="Campo nome do artista deve ser preenchido!" />
+                <MudTextField T="string" Label="Nome da canção" @bind-Value="Musica!.Nome" Required="true" RequiredError="Campo nome da música/canção deve ser preenchido!" />
+                
+                <MudSelect T="Genero" ValueChanged="@GeneroOnValueChanged" Label="Gêneros" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" onchange="">
+                    @if (Generos is not null)
+                    {
+                        @foreach (var item in Generos!)
+                        {
+                            <MudSelectItem Value="item" />
+                        }
+                    }
+                    @if (GenerosSelecionados is not null)
+                    {
+                        <br />
+                        foreach (var item in GenerosSelecionados)
+                        {
+                            <MudAlert Severity="Severity.Info">@(item.Nome) adicionado como gênero.</MudAlert>
+                        }
+                       
+                    }
+                </MudSelect>
+            </MudForm>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" @onclick="VoltarParaListagem">Voltar</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="CadastrarMusica">Gravar</MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter]
+    public Musica? Musica { get; set; }
+    private List<Genero>? Generos { get; set; }
+
+    private List<Genero>? GenerosSelecionados { get; set; } = new();
+    private Genero? GeneroSelecionado { get; set; }
+
+    public string? NomeArtista { get; set; }
+
+
+    private void VoltarParaListagem()
+    {
+        navigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Generos = await generoAPI.GetGenerosAsync();
+    }
+
+    private async Task CadastrarMusica()
+    {
+        Artista? artista = new("","");
+        try
+        {
+            try
+            {
+                artista = await artistaAPI.GetArtistaPorNomeAsync(NomeArtista!);
+            }
+            catch (Exception)
+            {
+                var options = new DialogOptions { CloseOnEscapeKey = true };
+                var parameters = new DialogParameters<AlertaDialog>();
+                parameters.Add(x => x.ButtonText, "Ok");
+                parameters.Add(x => x.Color, Color.Error);
+                parameters.Add(x => x.ContentText, "Não existe artista com este nome.");
+                DialogService.Show<AlertaDialog>("Alerta", parameters, options);
+                return;
+            }           
+
+            if (string.IsNullOrEmpty(Musica!.Nome))
+            {
+                return;
+            }
+            if (GenerosSelecionados is not null)
+            {
+                Musica.Generos = GenerosSelecionados;                
+            }
+            Musica.ArtistaId = artista!.Id;
+            Musica.Artista = artista;
+            await musicaAPI.AddMusicaAsync(Musica!);
+            Logger.LogInformation("Música cadastrados com sucesso");
+            Thread.Sleep(2000);
+            navigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogInformation($"Erro ao cadastrar música!{ex.Message}");
+        }
+    }
+
+    private void GeneroOnValueChanged(Genero generoselecionado)
+    {
+        if (GenerosSelecionados is not null)
+        {
+            if (!GenerosSelecionados.Contains(generoselecionado))
+            {
+                GenerosSelecionados!.Add(generoselecionado);
+            }
+        }
+    }
+
+
+}

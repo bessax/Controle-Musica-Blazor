@@ -1,0 +1,25 @@
+﻿﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">
+        Cadastros
+        <MudNavLink Href="/artistas/manter" Match="NavLinkMatch.All">
+            <MudIcon Icon=@Icons.Material.Filled.PersonAdd Color="Color.Primary" />
+            Artistas
+        </MudNavLink>  
+        <MudNavLink Href="/musicas/manter" Match="NavLinkMatch.All">
+            <MudIcon Icon=@Icons.Material.Filled.MusicNote Color="Color.Primary" />
+            Músicas
+        </MudNavLink>
+    </MudNavLink>
+</MudNavMenu>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
